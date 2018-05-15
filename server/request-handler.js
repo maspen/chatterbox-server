@@ -12,7 +12,38 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-var requestHandler = function(request, response) {
+var exports = module.exports = {};
+
+var dataStore = {'results': [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }]};
+
+var insertIntoDataStore = function(data) {
+  // TODO: see if data exists
+  dataStore['results'].unshift(data);
+  console.log('dataStore', dataStore);
+};
+
+var getFromDataStore = function() {
+  // TODO: way to search for specific 'record'
+  return dataStore['results'].slice(1);
+};
+
+// var getStubData = function() {
+//   var message = {
+//     username: 'Chrystal',
+//     text: 'Chrystal Rocks!',
+//     roomname: 'Chrystalz Room'
+//   };
+
+//   return results;
+// };
+var defaultCorsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'X-Parse-Application-Id, X-Parse-REST-API-Key, content-type, accept',
+  'access-control-max-age': 10 // Seconds.
+};
+
+exports.requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -27,7 +58,8 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
+
+  console.log('Serving request type ' + request.method + ' for url ' + request.url + ' and request: ' + request.read());
 
   // The outgoing status.
   var statusCode = 200;
@@ -39,7 +71,7 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'text/plain';
+  headers['Content-Type'] = 'application/json';//'text/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -52,7 +84,50 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  // handle a GET
+  if (request.method === 'GET') {
+    console.log('server got GET');
+    if (request.url.includes('/classes/messages')) {
+      response.writeHead(statusCode);
+      // var result = [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }];
+      // var result = {'results': ['username', 'text', 'roomname']};
+      // var result = getFromDataStore();
+      response.end(JSON.stringify(dataStore));
+    }
+
+  } else if (request.method === 'POST') {
+    console.log('server got POST');
+    if (request.url.includes('/classes/messages')) {
+      // TODO:
+      // see if request.data already exists in 'store'
+      // yes: status code = 409
+      //      return empty
+      insertIntoDataStore(request.data);
+      // else: add it to 'store'
+      //       status code 201
+      //       return empty
+      response.writeHead(201);
+      // var result = [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }];
+      // var result = {'results': ['username', 'text', 'roomname']};
+      response.end();
+    }
+
+  } else if (request.method === 'OPTIONS') {
+    console.log('server got OPTIONS');
+
+    response.write('OPTIONS');
+    // response.end('some string');
+    response.end();
+
+  } else {
+    response.write('Hello, World!');
+
+    response.end();
+  }
+};
+
+exports.handleRequest = function(request) {
+  
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -64,10 +139,3 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
-

@@ -71,7 +71,7 @@ describe('Node Server Request Listener Function', function() {
 
     // Testing for a newline isn't a valid test
     // TODO: Replace with with a valid test
-    // expect(res._data).to.equal(JSON.stringify('\n'));
+    expect(res._data).to.equal();
     expect(res._ended).to.equal(true);
   });
 
@@ -88,7 +88,7 @@ describe('Node Server Request Listener Function', function() {
     expect(res._responseCode).to.equal(201);
 
     // Now if we request the log for that room the message we posted should be there:
-    req = new stubs.request('/classes/messages', 'GET');
+    req = new stubs.request('/classes/messages/', 'GET');
     res = new stubs.response();
 
     handler.requestHandler(req, res);
