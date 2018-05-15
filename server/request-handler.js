@@ -60,7 +60,7 @@ exports.requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
 
-  console.log('Serving request type ' + request.method + ' for url ' + request.url + ' and request: ' + request.read());
+  console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
   var statusCode = 200;
@@ -72,7 +72,7 @@ exports.requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'application/json';//'text/json';
+  headers['Content-Type'] = 'application/json';// ; charset=UTF-8//'text/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -86,15 +86,17 @@ exports.requestHandler = function(request, response) {
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
   // handle a GET
+  // console.log('The request headers are now', request);
   if (request.method === 'GET') {
     if (request.url.includes('/classes/messages')) {
-      response.writeHead(statusCode);
+      response.writeHead(statusCode, headers);
       // var result = [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }];
       // var result = {'results': ['username', 'text', 'roomname']};
       // var result = getFromDataStore();
+      console.log('in server GET');      
       response.end(JSON.stringify(dataStore));
     } else { // for when invalid endpoint but still GET
-      response.writeHead(404);
+      response.writeHead(404, headers);
       response.end('invalid endpoint ' + request.url);
     }
   } else if (request.method === 'POST' && request.url.includes('/classes/messages')) {
@@ -108,14 +110,15 @@ exports.requestHandler = function(request, response) {
       // store data in dataStore
       insertIntoDataStore(JSON.parse(body));
       // set status code on response
-      response.writeHead(201);
+      response.writeHead(201, headers);
       // call response.end();
       response.end();
     });
   } else if (request.method === 'OPTIONS') {
     console.log('server got OPTIONS');
 
-    response.write('OPTIONS');
+    // response.write('OPTIONS');
+    response.writeHead(200, headers);
     // response.end('some string');
     response.end();
 
