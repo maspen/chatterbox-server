@@ -16,9 +16,10 @@ var exports = module.exports = {};
 
 var dataStore = {'results': [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }]};
 
-var insertIntoDataStore = function(data) {
-  // TODO: see if data exists
-  dataStore['results'].unshift(data);
+var insertIntoDataStore = function(dataObject) {
+  // console.log('dataObject', dataObject);
+  
+  dataStore['results'].unshift(dataObject);
   console.log('dataStore', dataStore);
 };
 
@@ -86,32 +87,31 @@ exports.requestHandler = function(request, response) {
   // node to actually send all the data over to the client.
   // handle a GET
   if (request.method === 'GET') {
-    console.log('server got GET');
     if (request.url.includes('/classes/messages')) {
       response.writeHead(statusCode);
       // var result = [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }];
       // var result = {'results': ['username', 'text', 'roomname']};
       // var result = getFromDataStore();
       response.end(JSON.stringify(dataStore));
+    } else { // for when invalid endpoint but still GET
+      response.writeHead(404);
+      response.end('invalid endpoint ' + request.url);
     }
-
-  } else if (request.method === 'POST') {
-    console.log('server got POST');
-    if (request.url.includes('/classes/messages')) {
-      // TODO:
-      // see if request.data already exists in 'store'
-      // yes: status code = 409
-      //      return empty
-      insertIntoDataStore(request.data);
-      // else: add it to 'store'
-      //       status code 201
-      //       return empty
+  } else if (request.method === 'POST' && request.url.includes('/classes/messages')) {
+    let body = [];
+    request.on('error', (err) => {
+      console.error(err);
+    }).on('data', (chunk) => {
+      body.push(chunk);
+    }).on('end', () => {
+      body = Buffer.concat(body).toString();
+      // store data in dataStore
+      insertIntoDataStore(JSON.parse(body));
+      // set status code on response
       response.writeHead(201);
-      // var result = [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }];
-      // var result = {'results': ['username', 'text', 'roomname']};
+      // call response.end();
       response.end();
-    }
-
+    });
   } else if (request.method === 'OPTIONS') {
     console.log('server got OPTIONS');
 
