@@ -1,4 +1,5 @@
 const fs = require('fs');
+const http = require('http');
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -135,6 +136,11 @@ exports.requestHandler = function(request, response) {
     response.end();
 
   } else {
+    // parse urs
+    // `.client{$url}`
+    // fs.stat to see if directory
+    //.   error
+    //    else return html
     response.write('Hello, World!');
 
     response.end();
