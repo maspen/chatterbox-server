@@ -1,3 +1,4 @@
+const fs = require('fs');
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -11,6 +12,20 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+
+// chatterbox client index.html page
+// NOTE: it has to exist & be running; see the README file to accomplish this
+var htmlPagePath = '/Users/student/hrsf95-chatterbox-server/client/index.html';
+
+var chatterboxIndexHtmlPage = null;
+
+var setIndexPage = function(data) {
+  chatterboxIndexHtmlPage = data;
+  console.log('chatterboxIndexHtmlPage', chatterboxIndexHtmlPage);
+};
+
+//setIndexPage(fs.readFileSync(htmlPagePath).toString("utf-8"));
+setIndexPage(fs.readFileSync(htmlPagePath));
 
 var exports = module.exports = {};
 
@@ -28,20 +43,12 @@ var getFromDataStore = function() {
   return dataStore['results'].slice(1);
 };
 
-// var getStubData = function() {
-//   var message = {
-//     username: 'Chrystal',
-//     text: 'Chrystal Rocks!',
-//     roomname: 'Chrystalz Room'
-//   };
-
-//   return results;
-// };
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'X-Parse-Application-Id, X-Parse-REST-API-Key, content-type, accept',
-  'access-control-max-age': 10 // Seconds.
+  'access-control-max-age': 10, // Seconds.
+  'Content-Type' : 'application/json'
 };
 
 exports.requestHandler = function(request, response) {
@@ -72,7 +79,7 @@ exports.requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'application/json';// ; charset=UTF-8//'text/json';
+  // headers['Content-Type'] = 'application/json';// ; charset=UTF-8//'text/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -90,11 +97,16 @@ exports.requestHandler = function(request, response) {
   if (request.method === 'GET') {
     if (request.url.includes('/classes/messages')) {
       response.writeHead(statusCode, headers);
-      // var result = [{ 'username': 'Chrystal', 'text': 'Chrystal Rocks!', 'roomname': 'Chrystalz Room' }];
-      // var result = {'results': ['username', 'text', 'roomname']};
-      // var result = getFromDataStore();
-      console.log('in server GET');      
-      response.end(JSON.stringify(dataStore));
+      console.log('in server GET');
+      
+      // check to see if the client app index.html page was loaded
+      if(chatterboxIndexHtmlPage !== null) {
+        response.writeHead(200, { 'Content-Type': 'text/html' });
+        response.end(chatterboxIndexHtmlPage);
+      } else {
+        // return data from the 'dataStore'
+        response.end(JSON.stringify(dataStore));
+      }
     } else { // for when invalid endpoint but still GET
       response.writeHead(404, headers);
       response.end('invalid endpoint ' + request.url);
